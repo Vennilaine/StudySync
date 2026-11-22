@@ -1,0 +1,2 @@
+# StudySync
+Ryhmäkalenteri työssäkäyville opiskelijoille
