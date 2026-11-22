@@ -1,0 +1,19 @@
+# Riippuvuudet
+node_modules/
+**/node_modules/
+
+# Ympäristömuuttujat ja salaisuudet
+.env
+.env.*
+!.env.example
+
+# Käännetyt tiedostot
+dist/
+build/
+
+# Lokit
+*.log
+
+# Käyttöjärjestelmän tiedostot
+.DS_Store
+Thumbs.db
