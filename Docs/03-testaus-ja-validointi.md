@@ -83,15 +83,11 @@ Toimintojen manuaalinen testaus osoittaa, että sovelluksen peruskäyttö on mah
 
 Sovellus toimii paikallisessa kehitysympäristössä, eikä sitä ole julkaistu julkiselle palvelimelle. Käyttäjät eivät voi käyttää samaa käynnissä olevaa palvelinta eri tietokoneilta ilman erillisiä verkkoyhteysjärjestelyjä.
 
-**3. Automaattiset testit**
-
-Projektin keskeiset ominaisuudet on testattu manuaalisesti. Automaattista testikokonaisuutta ei ole vielä toteutettu tai dokumentoitu.
-
-**4. Ulkoiset kalenteripalvelut**
+**3. Ulkoiset kalenteripalvelut**
 
 Sovellusta ei ole yhdistetty esimerkiksi Google Calendariin tai Outlookiin. Käyttäjän on lisättävä tapahtumansa StudySynciin erikseen.
 
-**5. Käyttäjävalidointi**
+**4. Käyttäjävalidointi**
 
 Ulkopuolisilta opiskelijoilta ei ole vielä kerätty järjestelmällistä käyttäjäpalautetta.
 
