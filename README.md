@@ -26,7 +26,7 @@ StudySync on opiskelijoille suunnattu verkkokalenteri, jonka avulla voidaan hall
 
 ### Vaatimukset
 
-- Node.js ja npm
+- Node.js ja npm [lataa tästä node.js](https://nodejs.org/en/download)
 - Git (projektin lataamiseen GitHubista)
 
 ### 1. Lataa projekti
