@@ -3,7 +3,7 @@
 
 ## 1. Testauksen tavoite
 
-StudySync-projektin testauksen tavoitteena oli varmistaa, että sovelluksen keskeiset ominaisuudet toimivat ja että sovellus vastaa opiskelijoiden aikataulujen yhteensovittamisen tarpeeseen.
+StudySync-projektin testauksen tavoitteena oli varmistaa, että sovelluksen keskeiset ominaisuudet toimivat.
 
 Testaus tehtiin pääasiassa manuaalisesti käyttämällä sovellusta selaimessa ja tarkistamalla eri toimintojen tulokset.
 
