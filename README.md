@@ -24,10 +24,12 @@ StudySync on opiskelijoille suunnattu verkkokalenteri, jonka avulla voidaan hall
 
 ## Asennus ja käynnistäminen
 
-### Vaatimukset
+### Vaatimukset ohjelman testaukselle
 
 - Node.js ja npm [lataa tästä node.js](https://nodejs.org/en/download)
+- VS codessa Microsoft C++ buildtools ladattuna [Microsoft C++ buildtools](https://visualstudio.microsoft.com/visual-cpp-build-tools/)
 - Git (projektin lataamiseen GitHubista)
+HUOM OHJELMA EI TOIMI ILMAN NÄITÄ
 
 ### 1. Lataa projekti
 
