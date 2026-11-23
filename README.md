@@ -75,3 +75,8 @@ jakaa tapahtumia ryhmille ja etsiä yhteisiä vapaita aikoja.
 
 StudySync käyttää paikallista SQLite-tietokantaa.
 Tietokantatiedosto ei sisälly GitHub-repositorioon.
+
+
+[01-projektikuvaus.md](https://github.com/Vennilaine/StudySync/blob/main/Docs/01-projektikuvaus.md)
+[02-ai-tyoskentely.md](https://github.com/Vennilaine/StudySync/blob/main/Docs/02-ai-tyoskentely.md)
+[03-testaus-ja-validointi.md](https://github.com/Vennilaine/StudySync/blob/main/Docs/03-testaus-ja-validointi.md)
