@@ -1,2 +1,3 @@
-23.11.2026
+Rojekti palautettu:  23.11.2026
+
 [Videon linkki](https://metropoliafi-my.sharepoint.com/:v:/g/personal/vennila_metropolia_fi/IQCYC212qbOIR6zuKBa4ce0RAU9JemgJ9KNV1crTU-V29N0?nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0NvcHkifX0&e=vY2SVA)
