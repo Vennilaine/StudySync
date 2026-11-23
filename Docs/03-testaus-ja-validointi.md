@@ -29,8 +29,6 @@ Sovellusta testattiin paikallisessa kehitysympäristössä, jossa React-käyttö
 
 **Testaustapa:** Manuaalinen toiminnallinen testaus.
 
-**Huomio:** Taulukon tulokset perustuvat kehityksen aikana tehtyihin toimintakokeiluihin. Erillistä automaattista testikokonaisuutta ei ole vielä dokumentoitu.
-
 ## 3. Asennuksen ja käynnistämisen testaus
 
 StudySyncin toimivuutta testattiin kahdella eri Windows-tietokoneella.
