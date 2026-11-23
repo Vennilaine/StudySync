@@ -10,9 +10,11 @@ Tekoäly toimi apuvälineenä. Sovelluksen toimintaa tarkistettiin käytännöss
 
 ## 2. Alkuprompt
 
-**Täydennettävä:** Tähän lisätään projektissa käytetty alkuperäinen tekoälylle annettu tehtävänanto mahdollisimman tarkasti.
+Projektin tavoitteena on kehittää opiskelijoille suunnattu älykäs ja yhteisöllinen kalenterisovellus, joka helpottaa työn ja opiskelun yhdistämistä. Sovelluksen avulla käyttäjät voivat lisätä omat työvuoronsa, opiskeluaikataulunsa ja muut menonsa yhteiseen ryhmäkalenteriin.
 
-Alkupäämääränä oli kehittää StudySync-niminen sovellus, jonka avulla opiskelijat voivat hallita aikataulujaan ja löytää yhteisiä tapaamisaikoja.
+Sovellus auttaa ryhmäläisiä löytämään automaattisesti yhteisiä vapaita ajankohtia esimerkiksi ryhmätöiden, opiskelun ja tapaamisten järjestämiseen. Lisäksi sovellus tarjoaa käyttäjille ehdotuksia sopivista opiskeluajoista heidän henkilökohtaisten aikataulujensa perusteella.
+
+Tavoitteena on tehdä arjen aikatauluttamisesta helpompaa, vähentää aikataulujen yhteensovittamiseen liittyvää vaivaa ja parantaa opiskelijoiden mahdollisuuksia tasapainottaa työtä, opiskelua ja vapaa-aikaa.
 
 ## 3. Käytetyt työkalut
 
