@@ -97,6 +97,3 @@ StudySyncin keskeiset ominaisuudet on toteutettu ja niitä on kokeiltu manuaalis
 
 Testauksessa on varmistettu muun muassa käyttäjätunnusten toiminta, omien kalenteritapahtumien hallinta, ryhmätoiminnot, tapahtumien jakaminen ja yhteisten vapaiden aikojen etsiminen.
 
-Suurin havaittu käyttöönottoon liittyvä ongelma on `better-sqlite3`-riippuvuuden asentuminen toisella Windows-tietokoneella.
-
-Ennen lopullista palautusta olisi hyvä varmistaa projektin onnistunut asennus puhtaaseen ympäristöön sekä täydentää testausdokumenttia mahdollisilla uusilla testituloksilla.
