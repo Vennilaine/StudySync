@@ -17,3 +17,7 @@ build/
 # Käyttöjärjestelmän tiedostot
 .DS_Store
 Thumbs.db
+# Paikallinen SQLite-tietokanta
+*.db
+*.db-shm
+*.db-wal

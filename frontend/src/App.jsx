@@ -1,7 +1,49 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import './App.css'
 
 function App() {
+
+const [addingMemberGroupId, setAddingMemberGroupId] = useState(null)
+const [memberEmail, setMemberEmail] = useState('')
+const [groupMembers, setGroupMembers] = useState({})
+
+  const [currentUser, setCurrentUser] = useState(null)
+
+const [isRegistering, setIsRegistering] = useState(false)
+
+const [registerUsername, setRegisterUsername] = useState('')
+
+
+const [loginEmail, setLoginEmail] = useState('')
+const [loginPassword, setLoginPassword] = useState('')
+const [loginError, setLoginError] = useState('')
+
+const [checkingLogin, setCheckingLogin] = useState(true)
+
+useEffect(() => {
+  async function checkLogin() {
+    try {
+      const response = await fetch('http://localhost:3001/api/me', {
+        credentials: 'include'
+      })
+
+      if (response.ok) {
+        const user = await response.json()
+        setCurrentUser(user)
+      } else {
+        setCurrentUser(null)
+      }
+    } catch (error) {
+      console.error('Kirjautumistilan tarkistus epäonnistui:', error)
+      setCurrentUser(null)
+    } finally {
+      setCheckingLogin(false)
+    }
+  }
+
+  checkLogin()
+}, [])
+
   const [events, setEvents] = useState(() => {
     const saved = localStorage.getItem('studysync-events')
     try {
@@ -18,27 +60,126 @@ const [groups, setGroups] = useState(() => {
     return []
   }
 })
+useEffect(() => {
+  async function loadGroups() {
+    try {
+      const response = await fetch('http://localhost:3001/api/groups', {
+  credentials: 'include'
+})
+
+      if (!response.ok) {
+        throw new Error('Ryhmien hakeminen epäonnistui')
+      }
+
+      const data = await response.json()
+      setGroups(data)
+
+    } catch (error) {
+      console.error(error)
+      alert('Ryhmien hakeminen tietokannasta epäonnistui.')
+    }
+  }
+
+  if (currentUser) {
+    loadGroups()
+  }
+}, [currentUser])
+useEffect(() => {
+  async function loadEvents() {
+    try {
+      const response = await fetch('http://localhost:3001/api/events', {
+  credentials: 'include'
+})
+
+      if (!response.ok) {
+        throw new Error('Tapahtumien hakeminen epäonnistui')
+      }
+
+      const data = await response.json()
+      setEvents(data)
+
+    } catch (error) {
+      console.error(error)
+      alert('Tapahtumien hakeminen tietokannasta epäonnistui.')
+    }
+  }
+
+  if (currentUser) {
+    loadEvents()
+  }
+}, [currentUser])
+
+useEffect(() => {
+  if (!currentUser || groups.length === 0) {
+    setGroupMembers({})
+    return
+  }
+
+  let cancelled = false
+
+  async function loadGroupMembers() {
+    const membersByGroup = {}
+
+    for (const group of groups) {
+      try {
+        const response = await fetch(
+          `http://localhost:3001/api/groups/${group.id}/members`,
+          { credentials: 'include' }
+        )
+
+        if (response.ok) {
+          membersByGroup[group.id] = await response.json()
+        }
+      } catch (error) {
+        console.error('Jäsenten hakeminen epäonnistui:', error)
+      }
+    }
+
+    if (!cancelled) {
+      setGroupMembers(membersByGroup)
+    }
+  }
+
+  loadGroupMembers()
+
+  return () => {
+    cancelled = true
+  }
+}, [currentUser?.id, groups])
 
 const [groupName, setGroupName] = useState('')
 const [showGroupForm, setShowGroupForm] = useState(false)
 
-function createGroup(e) {
+async function createGroup(e) {
   e.preventDefault()
 
   if (!groupName.trim()) return
 
-  const newGroup = {
-    id: crypto.randomUUID(),
-    name: groupName.trim()
+  try {
+   const response = await fetch('http://localhost:3001/api/groups', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  credentials: 'include',
+  body: JSON.stringify({ name: groupName })
+})
+
+    if (!response.ok) {
+      throw new Error('Ryhmän tallennus epäonnistui')
+    }
+
+    const newGroup = await response.json()
+
+    setGroups(previousGroups => [...previousGroups, newGroup])
+
+    setGroupName('')
+    setShowGroupForm(false)
+
+  } catch (error) {
+    console.error(error)
+    alert('Ryhmän tallentaminen epäonnistui.')
   }
-
-  const updated = [...groups, newGroup]
-
-  setGroups(updated)
-  localStorage.setItem('studysync-groups', JSON.stringify(updated))
-
-  setGroupName('')
-  setShowGroupForm(false)
 }
 const [selectedGroupId, setSelectedGroupId] = useState('')
 const [meetingDuration, setMeetingDuration] = useState(60)
@@ -58,8 +199,13 @@ function findFreeTimes() {
   )
 
   // Tarkastellaan näkyvän viikon jokaista päivää
-  for (const day of days) {
-    const date = dateKey(day)
+  
+for (const day of days) {
+  const date = dateKey(day)
+
+  const today = dateKey(new Date())
+  if (date < today) continue
+
 
     const dayEvents = groupEvents
       .filter(event => event.date === date)
@@ -71,6 +217,13 @@ function findFreeTimes() {
 
     // Etsitään vapaita aikoja klo 08–20
     let current = 8 * 60
+
+if (date === today) {
+  const now = new Date()
+  const currentMinutes = now.getHours() * 60 + now.getMinutes()
+
+  current = Math.max(current, currentMinutes)
+}
 
     function toMinutes(time) {
       const [hours, minutes] = time.split(':').map(Number)
@@ -116,6 +269,9 @@ function findFreeTimes() {
   const [showForm, setShowForm] = useState(false)
   const [weekOffset, setWeekOffset] = useState(0)
 
+const [groupWeekOffset, setGroupWeekOffset] = useState(0)
+
+
   const [form, setForm] = useState({
     title: '',
     date: '',
@@ -145,6 +301,20 @@ function findFreeTimes() {
     return day
   })
 
+const groupMonday = new Date()
+groupMonday.setHours(12, 0, 0, 0)
+groupMonday.setDate(
+  groupMonday.getDate() - ((groupMonday.getDay() + 6) % 7)
+  + groupWeekOffset * 7
+)
+
+const groupDays = Array.from({ length: 7 }, (_, i) => {
+  const day = new Date(groupMonday)
+  day.setDate(groupMonday.getDate() + i)
+  return day
+})
+
+
   function dateKey(date) {
     return [
       date.getFullYear(),
@@ -153,26 +323,133 @@ function findFreeTimes() {
     ].join('-')
   }
 
-  function addEvent(e) {
-    e.preventDefault()
+ 
+async function handleLogout() {
+  try {
+    const response = await fetch('http://localhost:3001/api/logout', {
+      method: 'POST',
+      credentials: 'include'
+    })
 
-    if (!form.title.trim() || !form.date) {
-      alert('Täytä tapahtuman nimi ja päivämäärä.')
+    if (!response.ok) {
+      throw new Error('Uloskirjautuminen epäonnistui')
+    }
+
+    setCurrentUser(null)
+    setLoginEmail('')
+    setLoginPassword('')
+    setLoginError('')
+    setEvents([])
+    setGroups([])
+    setGroupMembers({})
+    setFreeTimes([])
+
+  } catch (error) {
+    console.error(error)
+    alert('Uloskirjautuminen epäonnistui.')
+  }
+}
+
+async function handleRegister(e) {
+  e.preventDefault()
+  setLoginError('')
+
+  try {
+    const response = await fetch('http://localhost:3001/api/register', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        username: registerUsername.trim(),
+        email: loginEmail.trim(),
+        password: loginPassword
+      })
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      setLoginError(data.error || 'Rekisteröityminen epäonnistui.')
       return
     }
 
-    if (form.end <= form.start) {
-      alert('Päättymisajan täytyy olla alkamisajan jälkeen.')
+    alert('Käyttäjätunnus luotu! Voit nyt kirjautua sisään.')
+    setIsRegistering(false)
+    setRegisterUsername('')
+    setLoginPassword('')
+
+  } catch (error) {
+    console.error(error)
+    setLoginError('Yhteys palvelimeen epäonnistui.')
+  }
+}
+
+async function handleLogin(e) {
+  e.preventDefault()
+  setLoginError('')
+
+  try {
+    const response = await fetch('http://localhost:3001/api/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      credentials: 'include',
+      body: JSON.stringify({
+        email: loginEmail,
+        password: loginPassword
+      })
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      setLoginError(data.error || 'Kirjautuminen epäonnistui.')
       return
     }
 
-    const updated = [
-      ...events,
-      { ...form, id: crypto.randomUUID() }
-    ]
+    setCurrentUser(data)
+    setLoginPassword('')
 
-    setEvents(updated)
-    localStorage.setItem('studysync-events', JSON.stringify(updated))
+  } catch (error) {
+    console.error(error)
+    setLoginError('Yhteys palvelimeen epäonnistui.')
+  }
+}
+
+async function addEvent(e) {
+  e.preventDefault()
+
+  if (!form.title.trim() || !form.date) {
+    alert('Täytä tapahtuman nimi ja päivämäärä.')
+    return
+  }
+
+  if (form.end <= form.start) {
+    alert('Päättymisajan täytyy olla alkamisajan jälkeen.')
+    return
+  }
+
+  try {
+   
+const response = await fetch('http://localhost:3001/api/events', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  credentials: 'include',
+  body: JSON.stringify(form)
+})
+
+
+    if (!response.ok) {
+      throw new Error('Tapahtuman tallennus epäonnistui')
+    }
+
+    const newEvent = await response.json()
+
+    setEvents(previousEvents => [...previousEvents, newEvent])
 
     setShowForm(false)
     setForm({
@@ -181,22 +458,124 @@ function findFreeTimes() {
       start: '09:00',
       end: '10:00',
       type: 'study',
-      groupIds: [],
+      groupIds: []
     })
-  }
 
-  function deleteEvent(id) {
-    if (!window.confirm('Poistetaanko tapahtuma?')) return
-
-    const updated = events.filter(event => event.id !== id)
-    setEvents(updated)
-    localStorage.setItem('studysync-events', JSON.stringify(updated))
+  } catch (error) {
+    console.error(error)
+    alert('Tapahtuman tallentaminen tietokantaan epäonnistui.')
   }
+}
+
+
+  
+async function deleteEvent(id) {
+  if (!window.confirm('Poistetaanko tapahtuma?')) return
+
+  try {
+   const response = await fetch(`http://localhost:3001/api/events/${id}`, {
+  method: 'DELETE',
+  credentials: 'include'
+})
+
+    if (!response.ok) {
+      throw new Error('Tapahtuman poistaminen epäonnistui')
+    }
+
+    setEvents(previousEvents =>
+      previousEvents.filter(event => event.id !== id)
+    )
+
+  } catch (error) {
+    console.error(error)
+    alert('Tapahtuman poistaminen tietokannasta epäonnistui.')
+  }
+}
+
+
+if (checkingLogin) {
+  return <p>Tarkistetaan kirjautumista...</p>
+}
+
+if (!currentUser) {
+  return (
+    <div style={{ maxWidth: '400px', margin: '80px auto', padding: '20px' }}>
+      <h1>StudySync 📅</h1>
+      
+      <h2>{isRegistering ? 'Rekisteröidy' : 'Kirjaudu sisään'}</h2>
+
+      <form
+ onSubmit={isRegistering ? handleRegister : handleLogin}
+  style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
+>
+{isRegistering && (
+  <label>
+    Käyttäjänimi
+    <input
+      type="text"
+      value={registerUsername}
+      onChange={e => setRegisterUsername(e.target.value)}
+      required
+    />
+  </label>
+)}
+
+        <label>
+          Sähköposti
+          <input
+            type="email"
+            value={loginEmail}
+            onChange={e => setLoginEmail(e.target.value)}
+            required
+          />
+        </label>
+
+        <label>
+          Salasana
+          <input
+            type="password"
+            value={loginPassword}
+            onChange={e => setLoginPassword(e.target.value)}
+            required
+          />
+        </label>
+
+        {loginError && (
+          <p style={{ color: 'red' }}>{loginError}</p>
+        )}
+
+        <button type="submit">
+  {isRegistering ? 'Luo käyttäjätunnus' : 'Kirjaudu sisään'}
+</button>
+        <button
+  type="button"
+  onClick={() => setIsRegistering(true)}
+>
+  Rekisteröidy
+</button>
+      </form>
+    </div>
+  )
+}
 
   return (
     <div className="app">
       <header className="header">
         <h1>StudySync 📅</h1>
+
+<div style={{
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: '16px'
+}}>
+  <span>Kirjautunut: {currentUser.username}</span>
+
+  <button onClick={handleLogout}>
+    Kirjaudu ulos
+  </button>
+</div>
+
         <p>Yhdistä työ, opiskelu ja yhteinen aika.</p>
       </header>
 
@@ -257,13 +636,15 @@ function findFreeTimes() {
                     </small>
                     <small>{types[event.type]}</small>
 
-                    <button
-                      className="delete-button"
-                      onClick={() => deleteEvent(event.id)}
-                      title="Poista tapahtuma"
-                    >
-                      ×
-                    </button>
+                   {event.user_id === currentUser.id && (
+  <button
+    className="delete-button"
+    onClick={() => deleteEvent(event.id)}
+    title="Poista tapahtuma"
+  >
+    ×
+  </button>
+)}
                   </div>
                 ))}
               </div>
@@ -284,10 +665,169 @@ function findFreeTimes() {
   ) : (
     <div className="group-list">
       {groups.map(group => (
-      <div className="group-card" key={group.id}>
+    
+<div
+  className="group-card"
+  key={group.id}
+  style={{ position: 'relative' }}
+>
   <h3>{group.name}</h3>
 
+<button
+  type="button"
+
+style={{
+  position: 'absolute',
+  top: '20px',
+  right: '20px',
+  backgroundColor: '#dc3545',
+  color: 'white',
+  border: 'none'
+}}
+
+  onClick={async () => {
+    const confirmed = window.confirm(
+      `Haluatko varmasti poistua ryhmästä "${group.name}"?`
+    )
+
+    if (!confirmed) return
+
+    try {
+      const response = await fetch(
+        `http://localhost:3001/api/groups/${group.id}/members/me`,
+        {
+          method: 'DELETE',
+          credentials: 'include'
+        }
+      )
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        alert(data.error || 'Ryhmästä poistuminen epäonnistui.')
+        return
+      }
+
+      setGroups(previousGroups =>
+        previousGroups.filter(item => item.id !== group.id)
+      )
+
+      setGroupMembers(previous => {
+        const updated = { ...previous }
+        delete updated[group.id]
+        return updated
+      })
+
+      alert('Poistuit ryhmästä onnistuneesti!')
+    } catch (error) {
+      console.error(error)
+      alert('Yhteys palvelimeen epäonnistui.')
+    }
+  }}
+>
+  Poistu ryhmästä
+</button>
+
+  
+<button
+  type="button"
+  onClick={() =>
+    setAddingMemberGroupId(
+      addingMemberGroupId === group.id ? null : group.id
+    )
+  }
+>
+  {addingMemberGroupId === group.id ? 'Peruuta' : 'Lisää jäsen'}
+</button>
+
+{addingMemberGroupId === group.id && (
+  <div>
+    <label>
+      Jäsenen sähköposti
+      <input
+        type="email"
+        value={memberEmail}
+        onChange={e => setMemberEmail(e.target.value)}
+        placeholder="esimerkki@email.com"
+      />
+    </label>
+
+<button
+  type="button"
+  onClick={async () => {
+    if (!memberEmail.trim()) {
+      alert('Anna sähköpostiosoite.')
+      return
+    }
+
+    try {
+      const response = await fetch(
+        `http://localhost:3001/api/groups/${group.id}/members`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            email: memberEmail.trim()
+          })
+        }
+      )
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        alert(data.error || 'Jäsenen lisääminen epäonnistui.')
+        return
+      }
+
+      
+alert('Käyttäjä lisättiin ryhmään!')
+
+setGroupMembers(previous => ({
+  ...previous,
+  [group.id]: [...(previous[group.id] || []), data.user]
+}))
+
+setMemberEmail('')
+setAddingMemberGroupId(null)
+
+    } catch (error) {
+      console.error(error)
+      alert('Yhteys palvelimeen epäonnistui.')
+    }
+  }}
+>
+  Tallenna jäsen
+</button>
+
+  </div>
+)}
+
+
+<h4>
+  Ryhmän jäsenet ({groupMembers[group.id]?.length ?? 0})
+</h4>
+
+
+{groupMembers[group.id] ? (
+  <ul>
+    {groupMembers[group.id].map(member => (
+     
+<li key={member.id}>
+  {member.username}
+  {member.id === currentUser.id && ' (sinä)'}
+</li>
+
+    ))}
+  </ul>
+) : (
+  <p>Ladataan jäseniä...</p>
+)}
+
   <h4>Jaetut tapahtumat</h4>
+
 
   {events.filter(event =>
     (event.groupIds || []).includes(group.id)
@@ -317,6 +857,88 @@ function findFreeTimes() {
     </div>
   )}
 </section>
+
+<section className="group-calendar-section">
+  <h2>Ryhmän viikkokalenteri</h2>
+  <p>Katso valitulle ryhmälle jaetut tapahtumat viikkokalenterissa.</p>
+
+<div className="availability-controls">
+  <label>
+    Valitse ryhmä
+    <select
+      value={selectedGroupId}
+      onChange={e => setSelectedGroupId(Number(e.target.value))}
+    >
+      <option value="">Valitse ryhmä</option>
+
+      {groups.map(group => (
+        <option key={group.id} value={group.id}>
+          {group.name}
+        </option>
+      ))}
+    </select>
+  </label>
+</div>
+
+<div className="week-navigation">
+  <button onClick={() => setGroupWeekOffset(groupWeekOffset - 1)}>
+    ← Edellinen
+  </button>
+
+  
+<strong>
+  {groupDays[0].toLocaleDateString('fi-FI')}
+  {' – '}
+  {groupDays[6].toLocaleDateString('fi-FI')}
+</strong>
+
+
+  <button onClick={() => setGroupWeekOffset(groupWeekOffset + 1)}>
+    Seuraava →
+  </button>
+</div>
+
+{selectedGroupId && (
+  <div className="calendar">
+    
+{groupDays.map(day => {
+
+      const date = dateKey(day)
+
+      const dayEvents = events
+        .filter(event =>
+          event.date === date &&
+          (event.groupIds || []).includes(selectedGroupId)
+        )
+        .sort((a, b) => a.start.localeCompare(b.start))
+
+      return (
+        <div className="day" key={date}>
+          <h3>
+            {day.toLocaleDateString('fi-FI', {
+              weekday: 'short',
+              day: 'numeric',
+              month: 'numeric'
+            })}
+          </h3>
+
+          {dayEvents.map(event => (
+            <div
+              key={event.id}
+              className={`event ${event.type}`}
+            >
+              <strong>{event.title}</strong>
+              <small>{event.start}–{event.end}</small>
+            </div>
+          ))}
+        </div>
+      )
+    })}
+  </div>
+)}
+
+</section>
+
 <section className="availability-section">
   <h2>Etsi yhteinen aika</h2>
 
@@ -331,7 +953,7 @@ function findFreeTimes() {
       <select
         value={selectedGroupId}
         onChange={e => {
-          setSelectedGroupId(e.target.value)
+          setSelectedGroupId(Number(e.target.value))
           setFreeTimes([])
         }}
       >
@@ -395,33 +1017,7 @@ function findFreeTimes() {
           required
         />
       </label>
-<div className="group-selection">
-  <h3>Jaa tapahtuma ryhmille</h3>
 
-  {groups.length === 0 ? (
-    <p>Et ole vielä luonut ryhmiä.</p>
-  ) : (
-    groups.map(group => (
-      <label className="group-checkbox" key={group.id}>
-        <input
-          type="checkbox"
-          checked={form.groupIds.includes(group.id)}
-          onChange={e => {
-            const updated = e.target.checked
-              ? [...form.groupIds, group.id]
-              : form.groupIds.filter(id => id !== group.id)
-
-            setForm({
-              ...form,
-              groupIds: updated
-            })
-          }}
-        />
-        {group.name}
-      </label>
-    ))
-  )}
-</div>
       <div className="form-actions">
         <button
           type="button"
